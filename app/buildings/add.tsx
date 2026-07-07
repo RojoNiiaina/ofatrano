@@ -1,8 +1,11 @@
+import { MaterialIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { Colors } from '../../constants/Colors';
 import { Styles, moderateScale } from '../../constants/Styles';
 import { useData } from '../../contexts/DataContext';
 
@@ -12,7 +15,27 @@ export default function AddBuildingScreen() {
   const [address, setAddress] = useState('');
   const [roomsCount, setRoomsCount] = useState('');
   const [defaultCost, setDefaultCost] = useState('');
+  const [photo, setPhoto] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission refusée', 'Nous avons besoin de la permission pour accéder à vos photos');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setPhoto(result.assets[0].uri);
+    }
+  };
 
   const validate = () => {
     const next: Record<string, string> = {};
@@ -34,6 +57,7 @@ export default function AddBuildingScreen() {
         name: name.trim() || undefined,
         address: address.trim(),
         roomCount: count,
+        photo: photo.trim() || undefined,
       },
       cost
     );
@@ -64,6 +88,16 @@ export default function AddBuildingScreen() {
             style={{ height: 80, paddingVertical: 12 }}
             error={errors.address}
           />
+          <TouchableOpacity style={styles.photoPicker} onPress={pickImage}>
+            {photo ? (
+              <Image source={{ uri: photo }} style={styles.photoPreview} />
+            ) : (
+              <View style={styles.photoPlaceholder}>
+                <MaterialIcons name="add-photo-alternate" size={48} color={Colors.border} />
+                <Text style={styles.photoText}>Ajouter une photo</Text>
+              </View>
+            )}
+          </TouchableOpacity>
           <Input
             label="Nombre de chambres *"
             placeholder="ex. 12"
@@ -93,6 +127,27 @@ export default function AddBuildingScreen() {
 const styles = StyleSheet.create({
   form: {
     marginTop: moderateScale(16),
+  },
+  photoPicker: {
+    height: moderateScale(150),
+    backgroundColor: Colors.secondaryLight,
+    borderRadius: moderateScale(8),
+    marginBottom: moderateScale(16),
+    overflow: 'hidden',
+  },
+  photoPreview: {
+    width: '100%',
+    height: '100%',
+  },
+  photoPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  photoText: {
+    marginTop: moderateScale(8),
+    color: Colors.border,
+    fontSize: moderateScale(14),
   },
   actions: {
     marginTop: moderateScale(40),

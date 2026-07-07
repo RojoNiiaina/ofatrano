@@ -1,23 +1,25 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Badge } from '../../components/ui/Badge';
 import { Card } from '../../components/ui/Card';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Colors } from '../../constants/Colors';
 import { Styles, moderateScale } from '../../constants/Styles';
 import { useData } from '../../contexts/DataContext';
 import {
-    getCurrentRentStatus,
-    getPaymentPeriod,
-    periodLabel,
-    rentStatusLabel,
-    toPeriod,
+  getCurrentRentStatus,
+  getPaymentPeriod,
+  periodLabel,
+  rentStatusLabel,
+  toPeriod,
 } from '../../utils/payments';
 
 export default function TenantProfileScreen() {
   const { id } = useLocalSearchParams();
   const { tenants, rooms, buildings, payments, recordPayment } = useData();
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const tenant = tenants.find((t) => t.id === id);
 
@@ -73,6 +75,11 @@ export default function TenantProfileScreen() {
         Alert.alert('Erreur', 'Impossible d\'enregistrer le paiement');
       }
     }
+  };
+
+  const handlePaymentConfirm = async () => {
+    setShowPaymentModal(false);
+    await handlePayment();
   };
 
   return (
@@ -166,7 +173,7 @@ export default function TenantProfileScreen() {
       )}
 
       <View style={{ marginTop: moderateScale(24), marginBottom: moderateScale(40), gap: moderateScale(12) }}>
-        <TouchableOpacity style={styles.primaryButton} onPress={handlePayment}>
+        <TouchableOpacity style={styles.primaryButton} onPress={() => setShowPaymentModal(true)}>
           <MaterialIcons name="add-card" size={moderateScale(20)} color="#FFF" style={{ marginRight: moderateScale(8) }} />
           <Text style={styles.primaryButtonText}>Enregistrer un paiement</Text>
         </TouchableOpacity>
@@ -177,6 +184,17 @@ export default function TenantProfileScreen() {
           <Text style={styles.secondaryButtonText}>Modifier le profil</Text>
         </TouchableOpacity>
       </View>
+
+      <ConfirmModal
+        visible={showPaymentModal}
+        title="Enregistrer un paiement"
+        message={`Voulez-vous enregistrer un paiement de ${room?.cost?.toLocaleString('fr-FR')} Ar pour ${tenant.firstName} ${tenant.lastName} ?`}
+        confirmText="Confirmer"
+        cancelText="Annuler"
+        onConfirm={handlePaymentConfirm}
+        onCancel={() => setShowPaymentModal(false)}
+        variant="info"
+      />
     </ScrollView>
   );
 }

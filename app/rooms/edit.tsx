@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { Button } from '../../components/ui/Button';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Input } from '../../components/ui/Input';
 import { Styles, moderateScale } from '../../constants/Styles';
 import { useData } from '../../contexts/DataContext';
@@ -10,6 +11,7 @@ export default function EditRoomScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { rooms, updateRoom, deleteRoom } = useData();
   const room = rooms.find((r) => r.id === id);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [number, setNumber] = useState(String(room?.number ?? 1));
   const [floor, setFloor] = useState(room?.floor ?? '');
@@ -47,18 +49,14 @@ export default function EditRoomScreen() {
       Alert.alert('Impossible', 'Retirez le locataire avant de supprimer la chambre');
       return;
     }
-    Alert.alert('Supprimer la chambre', 'Cette action est irréversible.', [
-      { text: 'Annuler', style: 'cancel' },
-      {
-        text: 'Supprimer',
-        style: 'destructive',
-        onPress: async () => {
-          await deleteRoom(room.id);
-          router.back();
-          router.back();
-        },
-      },
-    ]);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setShowDeleteModal(false);
+    await deleteRoom(room.id);
+    router.back();
+    router.back();
   };
 
   return (
@@ -94,6 +92,17 @@ export default function EditRoomScreen() {
           <Button title="Annuler" variant="outline" onPress={() => router.back()} />
         </View>
       </ScrollView>
+
+      <ConfirmModal
+        visible={showDeleteModal}
+        title="Supprimer la chambre"
+        message="Cette action est irréversible. Voulez-vous vraiment supprimer cette chambre ?"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setShowDeleteModal(false)}
+        variant="danger"
+      />
     </KeyboardAvoidingView>
   );
 }

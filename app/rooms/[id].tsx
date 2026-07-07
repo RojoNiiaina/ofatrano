@@ -1,10 +1,11 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Colors } from '../../constants/Colors';
 import { Styles, moderateScale } from '../../constants/Styles';
 import { useData } from '../../contexts/DataContext';
@@ -13,6 +14,8 @@ import { getRentStatusForPeriod, rentStatusLabel, toPeriod } from '../../utils/p
 export default function RoomDetailsScreen() {
   const { id } = useLocalSearchParams();
   const { rooms, tenants, buildings, payments, removeTenantFromRoom, recordPayment } = useData();
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const room = rooms.find((r) => r.id === id);
   const tenant = room?.tenantId ? tenants.find((t) => t.id === room.tenantId) : null;
@@ -30,24 +33,16 @@ export default function RoomDetailsScreen() {
     ? getRentStatusForPeriod(tenant, payments, currentPeriod)
     : null;
 
-  const handleRemove = () => {
-    Alert.alert(
-      'Retirer le locataire',
-      'Le locataire et son historique de paiements seront supprimés.',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Retirer',
-          style: 'destructive',
-          onPress: async () => {
-            if (typeof id === 'string') {
-              await removeTenantFromRoom(id);
-              Alert.alert('Succès', 'Locataire retiré de la chambre');
-            }
-          },
-        },
-      ]
-    );
+  const handleRemove = async () => {
+    if (typeof id === 'string') {
+      await removeTenantFromRoom(id);
+      Alert.alert('Succès', 'Locataire retiré de la chambre');
+    }
+  };
+
+  const handleRemoveConfirm = async () => {
+    setShowRemoveModal(false);
+    await handleRemove();
   };
 
   const handleAssign = () => {
@@ -74,6 +69,11 @@ export default function RoomDetailsScreen() {
         Alert.alert('Erreur', 'Impossible d\'enregistrer le paiement');
       }
     }
+  };
+
+  const handlePaymentConfirm = async () => {
+    setShowPaymentModal(false);
+    await handlePayment();
   };
 
   if (!room) {
@@ -168,10 +168,10 @@ export default function RoomDetailsScreen() {
             <Button
               title="Enregistrer Paiement"
               variant="primary"
-              onPress={handlePayment}
+              onPress={() => setShowPaymentModal(true)}
               icon={<MaterialIcons name="payment" size={20} color="#FFF" />}
             />
-            <Button title="Retirer Locataire" variant="danger" onPress={handleRemove} />
+            <Button title="Retirer Locataire" variant="danger" onPress={() => setShowRemoveModal(true)} />
           </>
         ) : (
           <Button title="Assigner Locataire" variant="primary" onPress={handleAssign} />
@@ -182,6 +182,28 @@ export default function RoomDetailsScreen() {
           onPress={() => router.push(`/rooms/edit?id=${room.id}` as any)}
         />
       </View>
+
+      <ConfirmModal
+        visible={showRemoveModal}
+        title="Retirer le locataire"
+        message="Le locataire et son historique de paiements seront supprimés de cette chambre. Voulez-vous continuer ?"
+        confirmText="Retirer"
+        cancelText="Annuler"
+        onConfirm={handleRemoveConfirm}
+        onCancel={() => setShowRemoveModal(false)}
+        variant="danger"
+      />
+
+      <ConfirmModal
+        visible={showPaymentModal}
+        title="Enregistrer un paiement"
+        message={`Voulez-vous enregistrer un paiement de ${room.cost.toLocaleString('fr-FR')} Ar pour ${tenant?.firstName} ${tenant?.lastName} ?`}
+        confirmText="Confirmer"
+        cancelText="Annuler"
+        onConfirm={handlePaymentConfirm}
+        onCancel={() => setShowPaymentModal(false)}
+        variant="info"
+      />
     </ScrollView>
   );
 }

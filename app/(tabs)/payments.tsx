@@ -30,13 +30,12 @@ export default function PaymentsScreen() {
   const renderItem = ({ item }: { item: Payment }) => (
     <Card style={styles.cardInfo}>
       <View style={Styles.rowBetween}>
-        <View>
-          <Text style={Styles.label}>{getTenantName(item.tenantId)}</Text>
-          <Text style={Styles.body}>{periodLabel(getPaymentPeriod(item))}</Text>
-          <Text style={[Styles.body, { color: Colors.textSecondary, marginTop: 2 }]}>{item.date}</Text>
+        <View style={styles.leftContent}>
+          <Text style={styles.tenantName}>{getTenantName(item.tenantId)}</Text>
+          <Text style={styles.periodLabel}>{periodLabel(getPaymentPeriod(item))}</Text>
         </View>
         <View style={styles.rightContent}>
-          <Text style={[Styles.title, { marginBottom: 4 }]}>{item.amount.toLocaleString('fr-FR')} Ar</Text>
+          <Text style={styles.amount}>{item.amount.toLocaleString('fr-FR')} Ar</Text>
           <Badge label={statusLabel(item.status)} status={statusToBadge(item.status)} />
         </View>
       </View>
@@ -63,11 +62,30 @@ export default function PaymentsScreen() {
 
 const styles = StyleSheet.create({
   cardInfo: {
-    padding: moderateScale(16),
+    padding: moderateScale(12),
     marginBottom: moderateScale(8),
+  },
+  leftContent: {
+    flex: 1,
+  },
+  tenantName: {
+    fontSize: moderateScale(14),
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    marginBottom: 2,
+  },
+  periodLabel: {
+    fontSize: moderateScale(12),
+    color: Colors.textSecondary,
   },
   rightContent: {
     alignItems: 'flex-end',
+  },
+  amount: {
+    fontSize: moderateScale(14),
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    marginBottom: 4,
   },
   emptyState: {
     padding: moderateScale(40),

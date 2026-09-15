@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { Card } from '../../components/ui/Card';
 import { Colors } from '../../constants/Colors';
 import { Styles, moderateScale } from '../../constants/Styles';
@@ -80,14 +81,20 @@ export default function DashboardScreen() {
       </View>
 
       {lateTenants > 0 && (
-        <Card style={{ marginTop: 16, padding: 16, backgroundColor: Colors.danger + '10' }}>
-          <View style={Styles.rowCentered}>
-            <MaterialIcons name="warning" size={24} color={Colors.danger} />
-            <Text style={[Styles.body, { marginLeft: 12, color: Colors.danger, fontWeight: '600' }]}>
-              {lateTenants} locataire(s) en retard ce mois
-            </Text>
-          </View>
-        </Card>
+        <TouchableOpacity
+          onPress={() => router.push('/(tabs)/tenants' as any)}
+          activeOpacity={0.7}
+        >
+          <Card style={{ marginTop: 16, padding: 16, backgroundColor: Colors.danger + '10' }}>
+            <View style={Styles.rowCentered}>
+              <MaterialIcons name="warning" size={24} color={Colors.danger} />
+              <Text style={[Styles.body, { marginLeft: 12, color: Colors.danger, fontWeight: '600' }]}>
+                {lateTenants} locataire(s) en retard ce mois
+              </Text>
+              <MaterialIcons name="chevron-right" size={20} color={Colors.danger} style={{ marginLeft: 'auto' }} />
+            </View>
+          </Card>
+        </TouchableOpacity>
       )}
 
       <Text style={[Styles.title, { marginTop: 24 }]}>Activité récente</Text>

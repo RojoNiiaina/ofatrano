@@ -1,8 +1,8 @@
 export const Colors = {
-  // Emerald Green primary palette
-  primary: '#10B981',
-  primaryLight: '#ecfdf5',
-  primaryDark: '#047857',
+  // Blue primary palette
+  primary: '#1059b9',
+  primaryLight: '#e0f2fe',
+  primaryDark: '#0c4a8a',
   
   // Accents and secondary
   secondary: '#3B82F6',
